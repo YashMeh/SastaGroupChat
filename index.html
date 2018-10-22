@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Basic Chat-App</title>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+	<style type="text/css">
+		#log{
+    border: 5px solid black;
+    height: 300px;
+    width: 800px;
+    margin: 0 auto;
+    border-radius: 16px;
+    background: grey;
+}
+	#sendCtrls{
+    width: 300px;
+    margin: 30px auto;
+}
+	</style>
+</head>
+<body>
+	<div id="log"></div>
+	<div id="sendCtrls">
+	<input type="text" placeholder="Your Message Here" id="text">
+	<button>Send</button>
+	</div>
+	<script>
+		var name=prompt("Enter Your Name ")
+		var sock=new WebSocket("ws://localhost:3000");
+		sock.onopen=function(){
+			sock.send(JSON.stringify({
+				type:"name",
+				data:name
+			}));
+		}
+		var log=document.getElementById('log');
+		sock.onmessage=function(event)
+		{
+			var json=JSON.parse(event.data);
+			$("#log").append(json.name+" :"+"<button class='txt'>"+json.data+"</button>");
+			console.log(event.data);
+		}
+		$('button').on('click',function(){
+			var text=$('#text').val();
+			//sock.send(text);
+			sock.send(JSON.stringify({
+				type:"message",
+				data:text
+			}))
+			//$("#log").append("You: "+text);
+			$("#log").append("You :"+"<button class='txt'>"+text+"</button><br>")
+			//log.innerHTML+="You: "+text+"<br>";
+			
+		})
+
+		
+		$(document).on("click","#log .txt",function(e){
+			//alert("hagga")
+			$.ajax({
+				type:"POST",
+				url:"http://127.0.0.1:3000/api/check",
+				data:{news:this.innerHTML},
+				headers:{"Access-Control-Allow-Origin":"*"}
+			}).done(function(e){
+				console.log(e);
+			}).fail(function(err){
+				console.log(err);
+			})
+			console.log(this.innerHTML);
+		})
+
+	</script>
+</body>
+</html>
